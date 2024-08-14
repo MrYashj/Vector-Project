@@ -1,0 +1,127 @@
+C51 COMPILER V9.60.0.0   I2C_DR                                                            02/06/2024 09:35:14 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE I2C_DR
+OBJECT MODULE PLACED IN .\Objects\I2C_DR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE I2C_DR.C OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\I2
+                    -C_DR.lst) TABS(2) OBJECT(.\Objects\I2C_DR.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          
+   3          #include "header.h"
+   4          sbit scl=P2^6;
+   5          sbit sda=P2^7;
+   6          
+   7          void i2cStart(void)
+   8          {
+   9   1      //  sda=1;
+  10   1      //  scl=1;
+  11   1        sda=0;
+  12   1      }
+  13          
+  14          void i2cReStart(void)
+  15          {
+  16   1        scl=0;
+  17   1        sda=1;
+  18   1        scl=1;
+  19   1        sda=0;
+  20   1      }
+  21          
+  22          void i2cStop(void)
+  23          {
+  24   1        scl=0;
+  25   1        sda=0;
+  26   1        scl=1;
+  27   1        sda=1;
+  28   1      }
+  29          
+  30          void i2cWrite(u8 byte)
+  31          {
+  32   1        u8 i;
+  33   1        for(i=0;i<8;i++)
+  34   1        {
+  35   2          scl=0;
+  36   2          sda=(byte>>(7-i))&1;
+  37   2          scl=1;
+  38   2        }  
+  39   1      }
+  40          
+  41          u8 i2cRead(void)
+  42          {
+  43   1        u8 i,buff;
+  44   1        for(i=0;i<8;i++)
+  45   1        {
+  46   2          scl=0;
+  47   2          scl=1;
+  48   2          if(sda)
+  49   2            buff|=0x80>>i;
+  50   2          else
+  51   2            buff&=~(0x80>>i);
+  52   2        }
+  53   1        return buff;   
+  54   1      }
+C51 COMPILER V9.60.0.0   I2C_DR                                                            02/06/2024 09:35:14 PAGE 2   
+
+  55          void i2cSlaveAck(void)
+  56          {
+  57   1        scl=0;
+  58   1        sda=1;
+  59   1        scl=1;
+  60   1        while(sda);
+  61   1      }
+  62          
+  63          
+  64          void i2cNAck(void)
+  65          {
+  66   1        scl=0;
+  67   1        sda=1;
+  68   1        scl=1;
+  69   1      }
+  70          
+  71          void i2cDevByteWrite(u8 slaveAddr7Bit,u8 wBuffAddr,u8 dat)
+  72          {
+  73   1        i2cStart();
+  74   1        i2cWrite((slaveAddr7Bit)|0);
+  75   1        i2cSlaveAck();
+  76   1        i2cWrite(wBuffAddr);
+  77   1        i2cSlaveAck();
+  78   1        i2cWrite(dat);
+  79   1        i2cSlaveAck();
+  80   1        i2cStop();
+  81   1        delay_ms(10);
+  82   1      }
+  83          
+  84          
+  85          u8 i2cDevRandomRead(u8 slaveAddr7Bit,u8 rBuffAddr)
+  86          {
+  87   1        u8 buff;
+  88   1        i2cStart();
+  89   1        i2cWrite((slaveAddr7Bit)|0);
+  90   1        i2cSlaveAck();
+  91   1        i2cWrite(rBuffAddr);
+  92   1        i2cSlaveAck();
+  93   1        i2cReStart();
+  94   1        i2cWrite((slaveAddr7Bit)|1);
+  95   1        i2cSlaveAck();
+  96   1        buff=i2cRead();
+  97   1        i2cNAck();
+  98   1        i2cStop(); 
+  99   1      
+ 100   1        return buff;
+ 101   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    195    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

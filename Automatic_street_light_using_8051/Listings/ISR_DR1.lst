@@ -1,0 +1,202 @@
+C51 COMPILER V9.60.0.0   ISR_DR1                                                           02/06/2024 09:35:14 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE ISR_DR1
+OBJECT MODULE PLACED IN .\Objects\ISR_DR1.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ISR_DR1.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\I
+                    -SR_DR1.lst) TABS(2) OBJECT(.\Objects\ISR_DR1.obj)
+
+line level    source
+
+   1          #include"header.h"
+   2          u8 i_flag;
+   3          void EINT0(void) interrupt 0
+   4          {
+   5   1        i_flag=1;
+   6   1      }
+   7          
+   8          u8 AsciiToHexBCD(u8 t1,u8 t2)
+   9          {
+  10   1        return (((t1&0x0f)<<4)|(t2&0x0f));
+  11   1      }
+  12          u8 HexBCDtoAscii1Nibble(u8 bcdVal)
+  13          {
+  14   1        return((bcdVal&0x0f)+48);        
+  15   1      }
+  16          u8 HexBCDtoAscii2Nibble(u8 bcdVal)
+  17          {
+  18   1        return((bcdVal>>4)+48);        
+  19   1      }
+  20          int edit_return(int max)
+  21          {
+  22   1        int i,j,value,t;
+  23   1                        
+  24   1                        x:Write_CMD_LCD(0xc8);
+  25   1                        Write_DAT_LCD(i=KeyValue());
+  26   1                        Write_DAT_LCD(j=KeyValue());
+  27   1                        value=AsciiToHexBCD(i,j);
+  28   1                        t=(((i-48)*10)+(j-48));
+  29   1                        if(t>max)
+  30   1                        {
+  31   2                           Write_CMD_LCD(0xc8);
+  32   2                          Write_str_LCD("   ");
+  33   2                         Write_CMD_LCD(0xd4);
+  34   2                         Write_int_LCD(t);
+  35   2                         Write_str_LCD(" WRONG DATA");  
+  36   2                         goto x;
+  37   2                        }
+  38   1                        Write_CMD_LCD(0xd4);
+  39   1                        Write_str_LCD("             ");
+  40   1                        return value;
+  41   1      }
+  42          
+  43          
+  44          
+  45          
+  46          void rtc_edit(void)
+  47          {
+  48   1        u8 hrs,mins,secs,date,mon,year;
+  49   1        Write_CMD_LCD(0x01);
+  50   1        Write_CMD_LCD(0xc4);
+  51   1        Write_str_LCD("CHANGE SETTINGS");
+  52   1        delay_ms(800);
+  53   1        //wrong:
+  54   1        //x3:
+C51 COMPILER V9.60.0.0   ISR_DR1                                                           02/06/2024 09:35:14 PAGE 2   
+
+  55   1        Write_CMD_LCD(0x01);
+  56   1        Write_CMD_LCD(0x88);
+  57   1        Write_str_LCD("MENU");
+  58   1        Write_CMD_LCD(0xC3);
+  59   1        Write_str_LCD("1:HRS");
+  60   1        Write_str_LCD(" 2:MIN");
+  61   1        Write_str_LCD(" 3:SEC");
+  62   1        Write_CMD_LCD(0x97);
+  63   1        Write_str_LCD("4:DT ");
+  64   1        Write_str_LCD(" 5:MON");
+  65   1        Write_str_LCD(" 6:YR ");
+  66   1        
+  67   1      switch(KeyValue())
+  68   1      {
+  69   2       
+  70   2            case '1':   Write_CMD_LCD(0x01);
+  71   2                        Write_CMD_LCD(0x82);
+  72   2                        Write_str_LCD("CHANGE HOUR_TIME");
+  73   2                        hrs=edit_return(24);
+  74   2                         break;
+  75   2            case '2':   Write_CMD_LCD(0x01);
+  76   2                        Write_CMD_LCD(0x81);
+  77   2                        Write_str_LCD("CHANGE MINUTES_TIME");
+  78   2                        mins=edit_return(60);
+  79   2                          break;
+  80   2                          
+  81   2            case '3':         Write_CMD_LCD(0x01);
+  82   2                        Write_CMD_LCD(0x82);
+  83   2                        Write_str_LCD("CHANGE SECS_TIME");
+  84   2                        secs=edit_return(60);
+  85   2                        break;
+  86   2      
+  87   2            case '4':     Write_CMD_LCD(0x01);
+  88   2                        Write_CMD_LCD(0x82);
+  89   2                        Write_str_LCD("CHANGE DATE");
+  90   2                        date=edit_return(31);
+  91   2                        break;
+  92   2            case '5':   Write_CMD_LCD(0x01);
+  93   2                        Write_CMD_LCD(0x81);
+  94   2                        Write_str_LCD("CHANGE MONTH");
+  95   2                        mon=edit_return(12);
+  96   2                          break;
+  97   2                          
+  98   2            case '6':         Write_CMD_LCD(0x01);
+  99   2                        Write_CMD_LCD(0x82);
+ 100   2                        Write_str_LCD("CHANGE YEAR");
+ 101   2                        Write_CMD_LCD(0xc6);
+ 102   2                        Write_DAT_LCD('2');
+ 103   2                        Write_DAT_LCD('0');
+ 104   2                        year=edit_return(99);
+ 105   2                        break;
+ 106   2                
+ 107   2            /*default :   Write_CMD_LCD(0x01);
+ 108   2                        Write_CMD_LCD(0xc2);
+ 109   2                        Write_str_LCD("WRONG CHOICE");
+ 110   2                        delay_ms(500);
+ 111   2                        goto wrong;*/
+ 112   2        
+ 113   2           }
+ 114   1             Write_CMD_LCD(0x01);
+ 115   1      
+ 116   1             i2cDevByteWrite(0xd0,0x02,hrs);
+C51 COMPILER V9.60.0.0   ISR_DR1                                                           02/06/2024 09:35:14 PAGE 3   
+
+ 117   1             i2cDevByteWrite(0xd0,0x01,mins);
+ 118   1             i2cDevByteWrite(0xd0,0x00,secs);
+ 119   1             i2cDevByteWrite(0xd0,0x04,date);
+ 120   1             i2cDevByteWrite(0xd0,0x05,mon);
+ 121   1             i2cDevByteWrite(0xd0,0x06,year);
+ 122   1           Write_CMD_LCD(0x01);
+ 123   1           Write_CMD_LCD(0x85);
+ 124   1         Write_str_LCD(" HH:MM:SS");
+ 125   1          Write_CMD_LCD(0x99);
+ 126   1         Write_str_LCD(" DD/MM/YEAR");
+ 127   1         i_flag=0;
+ 128   1      
+ 129   1      }
+ 130          
+ 131          u8 * getTime(void)
+ 132          {
+ 133   1        static u8 time[]="00:00:00";
+ 134   1         u8 hrs,mins,secs;
+ 135   1        
+ 136   1         hrs=i2cDevRandomRead(0xd0,0x02);  
+ 137   1         mins=i2cDevRandomRead(0xd0,0x01);
+ 138   1         secs=i2cDevRandomRead(0xd0,0x00);
+ 139   1        
+ 140   1         time[0]=HexBCDtoAscii2Nibble(hrs);
+ 141   1         time[1]=HexBCDtoAscii1Nibble(hrs);
+ 142   1         time[3]=HexBCDtoAscii2Nibble(mins);
+ 143   1         time[4]=HexBCDtoAscii1Nibble(mins);
+ 144   1         time[6]=HexBCDtoAscii2Nibble(secs);
+ 145   1         time[7]=HexBCDtoAscii1Nibble(secs);
+ 146   1        return time;
+ 147   1      }
+ 148          u8 * getdate(void)
+ 149          {
+ 150   1        static u8 time[]="00/00/0000";
+ 151   1         u8 date,mon;
+ 152   1         unsigned int year;
+ 153   1        
+ 154   1         date=i2cDevRandomRead(0xd0,0x04);  
+ 155   1         mon=i2cDevRandomRead(0xd0,0x05);
+ 156   1         year=i2cDevRandomRead(0xd0,0x06);
+ 157   1        
+ 158   1         time[0]=HexBCDtoAscii2Nibble(date);
+ 159   1         time[1]=HexBCDtoAscii1Nibble(date);
+ 160   1         time[3]=HexBCDtoAscii2Nibble(mon);
+ 161   1         time[4]=HexBCDtoAscii1Nibble(mon);
+ 162   1        time[6]=2+48;
+ 163   1         time[7]=48;
+ 164   1        time[8]=HexBCDtoAscii2Nibble(year);
+ 165   1         time[9]=HexBCDtoAscii1Nibble(year);
+ 166   1      /*
+ 167   1         time[6]=((2012/1000)%10)+48;
+ 168   1         time[7]=((2012/100)%10)+48;
+ 169   1         time[8]=((2012/10)%10)+48;
+ 170   1         time[9]=(2012%10)+48;*/
+ 171   1        return time;
+ 172   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    782    ----
+   CONSTANT SIZE    =    204    ----
+   XDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.0.0   ISR_DR1                                                           02/06/2024 09:35:14 PAGE 4   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21      20
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

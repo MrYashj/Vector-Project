@@ -1,0 +1,9 @@
+".\Objects\STARTUP.obj",
+".\Objects\I2C_DR.obj",
+".\Objects\LCD_DR.obj",
+".\Objects\MAIN_DR.obj",
+".\Objects\delay.obj",
+".\Objects\driver_keypad.obj",
+".\Objects\ISR_DR1.obj" 
+TO ".\Objects\rtc_edit" 
+PRINT(".\Listings\rtc_edit.m51") RAMSIZE(256) 
